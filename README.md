@@ -1,6 +1,6 @@
 # Directionality Analysis of Writing
 
-This repository contains a Python script for analyzing the directionality of languages by examining the character frequency and entropy differences in the initial and final positions of words. This analysis is based on research from the paper, *The “Handedness” of Language: Directional Symmetry Breaking of Sign Usage in Words*, by Md Izhar Ashraf and Sitabhra Sinha. Using techniques from the paper, this script processes texts from the Europarl corpus to determine if a language is predominantly left-to-right or right-to-left.
+This repository contains a Python script for analyzing the directionality of writing by examining the character frequency and entropy differences in the initial and final positions of words. This analysis is based on research from the paper, *The “Handedness” of Language: Directional Symmetry Breaking of Sign Usage in Words*, by Md Izhar Ashraf and Sitabhra Sinha. Using techniques from the paper, this script processes texts from the Europarl corpus to determine if a language is predominantly left-to-right or right-to-left.
 
 ## Files in this Repository
 
