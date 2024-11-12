@@ -112,7 +112,7 @@ def analyze_directionality(text):
 
 
 # Updated process_languages function with distinct sample sizes for Europarl and UDHR
-def process_languages(languages, europarl_sample_size=100000, udhr_sample_size=100):
+def process_languages(languages, europarl_sample_size=750, udhr_sample_size=750):
     """Process each language in Europarl and also add UDHR Arabic and Hebrew."""
     results = []
     
