@@ -9,6 +9,9 @@ __pycache__/
 *~
 .DS_Store
 
+# Ignore CSV files
+*.csv
+
 # Ignore virtual environments (if applicable)
 venv/
 .env/
