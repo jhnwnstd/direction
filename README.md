@@ -30,12 +30,6 @@ This directional asymmetry—measured using statistical metrics such as the **Gi
   - `numpy`
   - `scipy`
 
-Install the dependencies with:
-
-```bash
-pip install -r requirements.txt
-```
-
 ## Usage
 
 1. **Download the NLTK Europarl Corpus**:
