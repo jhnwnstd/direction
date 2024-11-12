@@ -8,9 +8,7 @@ from scipy.stats import entropy
 
 
 def download_nltk_corpora():
-    """
-    Ensure that the necessary NLTK corpora are downloaded.
-    """
+    """Ensure that the necessary NLTK corpora are downloaded."""
     try:
         nltk.data.find('corpora/europarl_raw')
     except LookupError:
@@ -25,13 +23,7 @@ def download_nltk_corpora():
 
 
 def get_available_languages():
-    """
-    Retrieve a list of available languages in the europarl_raw corpus.
-    Only include languages that are lowercase and have a callable 'raw' method.
-    
-    Returns:
-        list: A list of language names as strings.
-    """
+    """Retrieve a list of available languages in the europarl_raw corpus."""
     languages = []
     for lang in dir(europarl_raw):
         if lang.islower():
@@ -43,7 +35,7 @@ def get_available_languages():
 
 def calculate_gini_coefficient(freqs):
     """Calculate the Gini coefficient for a list of frequencies."""
-    sorted_freqs = np.sort(freqs)  # Sort in ascending order
+    sorted_freqs = np.sort(freqs)
     n = len(sorted_freqs)
     if n == 0:
         return 0.0
@@ -81,9 +73,6 @@ def analyze_directionality(text):
     initial_freqs = Counter(initial_chars)
     final_freqs = Counter(final_chars)
     
-    if not initial_freqs or not final_freqs:
-        raise ValueError("Insufficient character frequency data for analysis.")
-    
     initial_gini = calculate_gini_coefficient(list(initial_freqs.values()))
     final_gini = calculate_gini_coefficient(list(final_freqs.values()))
     
@@ -111,51 +100,60 @@ def analyze_directionality(text):
     }
 
 
-# Updated process_languages function with distinct sample sizes for Europarl and UDHR
 def process_languages(languages, europarl_sample_size=750, udhr_sample_size=750):
-    """Process each language in Europarl and also add UDHR Arabic and Hebrew."""
+    """Process each language in Europarl and UDHR, with reversed text testing."""
     results = []
     
-    # Process Europarl languages with larger sample size
     for language in languages:
         print(f"Processing Language: {language.capitalize()}")
         try:
             corpus = getattr(europarl_raw, language)
             text_data = corpus.raw()[:europarl_sample_size]
-            print("Corpus loaded successfully.")
+            reversed_text_data = text_data[::-1]
             
-            analysis_results = analyze_directionality(text_data)
-            analysis_results["Language"] = language.capitalize()
-            analysis_results["Sample Size"] = europarl_sample_size
-            results.append(analysis_results)
+            # Analyze normal text
+            normal_results = analyze_directionality(text_data)
+            normal_results["Language"] = language.capitalize()
+            normal_results["Sample Size"] = europarl_sample_size
+            normal_results["Text Type"] = "Normal"
+            results.append(normal_results)
             
-            print("Analysis completed successfully.\n")
+            # Analyze reversed text
+            reversed_results = analyze_directionality(reversed_text_data)
+            reversed_results["Language"] = language.capitalize()
+            reversed_results["Sample Size"] = europarl_sample_size
+            reversed_results["Text Type"] = "Reversed"
+            results.append(reversed_results)
+            
+            print(f"Analysis for {language.capitalize()} completed.\n")
         
-        except AttributeError:
-            print(f"Language '{language}' not found in 'europarl_raw'. Skipping.\n")
-        except ValueError as ve:
-            print(f"Analysis Error: {ve}. Skipping.\n")
         except Exception as e:
-            print(f"Unexpected Error: {e}. Skipping.\n")
+            print(f"Error processing {language}: {e}\n")
     
-    # Process UDHR Arabic and Hebrew with smaller sample size
     for udhr_language, fileid in [('Arabic', 'Arabic_Alarabia-Arabic'), ('Hebrew', 'Hebrew_Ivrit-Hebrew')]:
         print(f"Processing UDHR Language: {udhr_language}")
         try:
             text_data = udhr.raw(fileids=fileid)[:udhr_sample_size]
-            print("UDHR corpus loaded successfully.")
+            reversed_text_data = text_data[::-1]
             
-            analysis_results = analyze_directionality(text_data)
-            analysis_results["Language"] = udhr_language
-            analysis_results["Sample Size"] = udhr_sample_size
-            results.append(analysis_results)
+            # Analyze normal text
+            normal_results = analyze_directionality(text_data)
+            normal_results["Language"] = udhr_language
+            normal_results["Sample Size"] = udhr_sample_size
+            normal_results["Text Type"] = "Normal"
+            results.append(normal_results)
             
-            print("Analysis completed successfully.\n")
+            # Analyze reversed text
+            reversed_results = analyze_directionality(reversed_text_data)
+            reversed_results["Language"] = udhr_language
+            reversed_results["Sample Size"] = udhr_sample_size
+            reversed_results["Text Type"] = "Reversed"
+            results.append(reversed_results)
+            
+            print(f"Analysis for {udhr_language} completed.\n")
         
-        except ValueError as ve:
-            print(f"Analysis Error for {udhr_language}: {ve}. Skipping.\n")
         except Exception as e:
-            print(f"Unexpected Error for {udhr_language}: {e}. Skipping.\n")
+            print(f"Error processing {udhr_language}: {e}\n")
     
     return results
 
@@ -171,6 +169,7 @@ def display_results(results):
     fieldnames = [
         "Language",
         "Sample Size",
+        "Text Type",
         "Initial Gini",
         "Final Gini",
         "Initial Entropy",
@@ -189,13 +188,10 @@ def display_results(results):
 
 def save_results_to_csv(results, filename='directionality_results.csv'):
     """Save the analysis results to a CSV file."""
-    if not results:
-        print("No results to save.")
-        return
-    
     fieldnames = [
         "Language",
         "Sample Size",
+        "Text Type",
         "Initial Gini",
         "Final Gini",
         "Initial Entropy",
@@ -231,12 +227,12 @@ def main():
     
     display_results(all_results)
     
-    if all_results:
-        save_choice = input("\nWould you like to save the results to 'directionality_results.csv'? (y/n): ").strip().lower()
-        if save_choice == 'y':
-            save_results_to_csv(all_results)
-        else:
-            print("Results not saved.")
+    # Ask if the user wants to save the results to CSV
+    save_choice = input("\nWould you like to save the results to 'directionality_results.csv'? (y/n): ").strip().lower()
+    if save_choice == 'y':
+        save_results_to_csv(all_results)
+    else:
+        print("Results not saved.")
 
 
 if __name__ == "__main__":
