@@ -9,28 +9,17 @@ from scipy.stats import entropy
 
 def download_nltk_corpora():
     """Ensure that the necessary NLTK corpora are downloaded."""
-    try:
-        nltk.data.find('corpora/europarl_raw')
-    except LookupError:
-        print("Downloading 'europarl_raw' corpus...")
-        nltk.download('europarl_raw')
-        
-    try:
-        nltk.data.find('corpora/udhr')
-    except LookupError:
-        print("Downloading 'udhr' corpus...")
-        nltk.download('udhr')
+    for corpus_name in ['europarl_raw', 'udhr']:
+        try:
+            nltk.data.find(f'corpora/{corpus_name}')
+        except LookupError:
+            print(f"Downloading '{corpus_name}' corpus...")
+            nltk.download(corpus_name)
 
 
 def get_available_languages():
     """Retrieve a list of available languages in the europarl_raw corpus."""
-    languages = []
-    for lang in dir(europarl_raw):
-        if lang.islower():
-            corpus = getattr(europarl_raw, lang, None)
-            if hasattr(corpus, 'raw') and callable(corpus.raw):
-                languages.append(lang)
-    return languages
+    return [lang for lang in dir(europarl_raw) if lang.islower() and hasattr(getattr(europarl_raw, lang), 'raw')]
 
 
 def calculate_gini_coefficient(freqs):
@@ -44,8 +33,7 @@ def calculate_gini_coefficient(freqs):
     if total == 0:
         return 0.0
     index = np.arange(1, n + 1)
-    gini = (2 * np.sum(index * sorted_freqs)) / (n * total) - (n + 1) / n
-    return gini
+    return (2 * np.sum(index * sorted_freqs)) / (n * total) - (n + 1) / n
 
 
 def calculate_entropy_value(freqs):
