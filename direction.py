@@ -67,11 +67,28 @@ def analyze_directionality(text):
     initial_entropy = calculate_entropy_value(list(initial_freqs.values()))
     final_entropy = calculate_entropy_value(list(final_freqs.values()))
     
-    gini_difference = (initial_gini - final_gini)
+    # Calculate differences
+    gini_difference = initial_gini - final_gini
     entropy_difference = initial_entropy - final_entropy
+
+    # Scaling the differences using min-max normalization
+    # For Gini differences, the possible range is [-1, 1]
+    normalized_gini_diff = (gini_difference + 1) / 2  # Scaled to [0, 1]
     
-    combined_score = entropy_difference - gini_difference
+    # For entropy differences, the possible range depends on the data
+    # We'll assume a reasonable entropy range [0, max_entropy]
+    max_entropy = np.log2(len(set(initial_chars + final_chars)))  # Maximum possible entropy
+    # Handle the case where max_entropy is zero
+    if max_entropy == 0:
+        normalized_entropy_diff = 0
+    else:
+        # Entropy difference can range from -max_entropy to max_entropy
+        normalized_entropy_diff = (entropy_difference + max_entropy) / (2 * max_entropy)  # Scaled to [0, 1]
     
+    # Now both differences are scaled to [0, 1], we can combine them
+    combined_score = normalized_entropy_diff - normalized_gini_diff
+    
+    # Determine likely direction
     if combined_score > 0:
         likely_direction = "Left-to-Right"
     elif combined_score < 0:
@@ -84,8 +101,10 @@ def analyze_directionality(text):
         "Final Gini": round(final_gini, 4),
         "Initial Entropy": round(initial_entropy, 4),
         "Final Entropy": round(final_entropy, 4),
-        "Gini Difference": round(gini_difference, 4),  # Note: This is now scaled
+        "Gini Difference": round(gini_difference, 4),
         "Entropy Difference": round(entropy_difference, 4),
+        "Normalized Gini Difference": round(normalized_gini_diff, 4),
+        "Normalized Entropy Difference": round(normalized_entropy_diff, 4),
         "Combined Score": round(combined_score, 4),
         "Likely Direction": likely_direction
     }
@@ -178,10 +197,9 @@ def display_results(results):
     if not results:
         print("No results to display.")
         return
-    
+
     print("\n--- Comprehensive Analysis Results ---\n")
-    
-    # Updated fieldnames to include "Token Count"
+
     fieldnames = [
         "Language",
         "Sample Size",
@@ -191,18 +209,19 @@ def display_results(results):
         "Final Gini",
         "Initial Entropy",
         "Final Entropy",
-        "Gini Difference",
-        "Entropy Difference",
+        "Gini Difference",                 # Include this
+        "Entropy Difference",              # Include this
+        "Normalized Gini Difference",
+        "Normalized Entropy Difference",
         "Combined Score",
         "Likely Direction"
     ]
-    
+
     csv_writer = csv.DictWriter(sys.stdout, fieldnames=fieldnames, delimiter='\t')
     csv_writer.writeheader()
-    
+
     for result in results:
         csv_writer.writerow(result)
-
 
 
 def save_results_to_csv(results, filename='directionality_results.csv'):
@@ -216,12 +235,14 @@ def save_results_to_csv(results, filename='directionality_results.csv'):
         "Final Gini",
         "Initial Entropy",
         "Final Entropy",
-        "Gini Difference",
-        "Entropy Difference",
-        "Combined Score",  # Added this field
+        "Gini Difference",                 # Include this
+        "Entropy Difference",              # Include this
+        "Normalized Gini Difference",
+        "Normalized Entropy Difference",
+        "Combined Score",
         "Likely Direction"
     ]
-    
+
     try:
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -231,6 +252,7 @@ def save_results_to_csv(results, filename='directionality_results.csv'):
         print(f"Results successfully saved to '{filename}'.")
     except Exception as e:
         print(f"Error saving to CSV: {e}")
+
 
 
 def main():
