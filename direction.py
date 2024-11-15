@@ -58,35 +58,20 @@ def analyze_directionality(text):
     if not initial_chars or not final_chars:
         raise ValueError("No valid words found in the text for analysis.")
     
-    # Token count for normalization
-    token_count = len(text.split())
-    if token_count == 0:
-        raise ValueError("Token count is zero; cannot normalize.")
-    
-    # Frequency counts
     initial_freqs = Counter(initial_chars)
     final_freqs = Counter(final_chars)
     
-    # Raw Gini and Entropy
     initial_gini = calculate_gini_coefficient(list(initial_freqs.values()))
     final_gini = calculate_gini_coefficient(list(final_freqs.values()))
+    
     initial_entropy = calculate_entropy_value(list(initial_freqs.values()))
     final_entropy = calculate_entropy_value(list(final_freqs.values()))
     
-    # Normalized Gini and Entropy
-    normalized_initial_gini = initial_gini / token_count
-    normalized_final_gini = final_gini / token_count
-    normalized_initial_entropy = initial_entropy / token_count
-    normalized_final_entropy = final_entropy / token_count
+    gini_difference = (initial_gini - final_gini)
+    entropy_difference = initial_entropy - final_entropy
     
-    # Differences using normalized values
-    gini_difference = normalized_initial_gini - normalized_final_gini
-    entropy_difference = normalized_initial_entropy - normalized_final_entropy
-    
-    # Combined score
     combined_score = entropy_difference - gini_difference
     
-    # Determine likely direction
     if combined_score > 0:
         likely_direction = "Left-to-Right"
     elif combined_score < 0:
@@ -99,13 +84,9 @@ def analyze_directionality(text):
         "Final Gini": round(final_gini, 4),
         "Initial Entropy": round(initial_entropy, 4),
         "Final Entropy": round(final_entropy, 4),
-        "Normalized Initial Gini": round(normalized_initial_gini, 8),
-        "Normalized Final Gini": round(normalized_final_gini, 8),
-        "Normalized Initial Entropy": round(normalized_initial_entropy, 8),
-        "Normalized Final Entropy": round(normalized_final_entropy, 8),
-        "Gini Difference": round(gini_difference, 8),
-        "Entropy Difference": round(entropy_difference, 8),
-        "Combined Score": round(combined_score, 8),
+        "Gini Difference": round(gini_difference, 4),  # Note: This is now scaled
+        "Entropy Difference": round(entropy_difference, 4),
+        "Combined Score": round(combined_score, 4),
         "Likely Direction": likely_direction
     }
 
