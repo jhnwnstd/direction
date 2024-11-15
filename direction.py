@@ -91,7 +91,7 @@ def analyze_directionality(text):
     }
 
 
-def process_languages(languages, europarl_sample_size=100000, udhr_sample_size=100000000):
+def process_languages(languages, europarl_sample_size=None, udhr_sample_size=None):
     """Process each language in Europarl and UDHR, with reversed text testing."""
     results = []
     
