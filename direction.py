@@ -67,9 +67,7 @@ def analyze_directionality(text):
     initial_entropy = calculate_entropy_value(list(initial_freqs.values()))
     final_entropy = calculate_entropy_value(list(final_freqs.values()))
     
-    GINI_SCALE_FACTOR = 5.0
-    
-    gini_difference = (initial_gini - final_gini) * GINI_SCALE_FACTOR
+    gini_difference = (initial_gini - final_gini)
     entropy_difference = initial_entropy - final_entropy
     
     combined_score = entropy_difference - gini_difference
