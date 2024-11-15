@@ -67,12 +67,16 @@ def analyze_directionality(text):
     initial_entropy = calculate_entropy_value(list(initial_freqs.values()))
     final_entropy = calculate_entropy_value(list(final_freqs.values()))
     
-    gini_difference = initial_gini - final_gini
+    GINI_SCALE_FACTOR = 5.0
+    
+    gini_difference = (initial_gini - final_gini) * GINI_SCALE_FACTOR
     entropy_difference = initial_entropy - final_entropy
     
-    if gini_difference < 0 and entropy_difference > 0:
+    combined_score = entropy_difference - gini_difference
+    
+    if combined_score > 0:
         likely_direction = "Left-to-Right"
-    elif gini_difference > 0 and entropy_difference < 0:
+    elif combined_score < 0:
         likely_direction = "Right-to-Left"
     else:
         likely_direction = "Indeterminate"
@@ -82,13 +86,14 @@ def analyze_directionality(text):
         "Final Gini": round(final_gini, 4),
         "Initial Entropy": round(initial_entropy, 4),
         "Final Entropy": round(final_entropy, 4),
-        "Gini Difference": round(gini_difference, 4),
+        "Gini Difference": round(gini_difference, 4),  # Note: This is now scaled
         "Entropy Difference": round(entropy_difference, 4),
+        "Combined Score": round(combined_score, 4),
         "Likely Direction": likely_direction
     }
 
 
-def process_languages(languages, europarl_sample_size=750, udhr_sample_size=750):
+def process_languages(languages, europarl_sample_size=100000, udhr_sample_size=100000000):
     """Process each language in Europarl and UDHR, with reversed text testing."""
     results = []
     
@@ -164,6 +169,7 @@ def display_results(results):
         "Final Entropy",
         "Gini Difference",
         "Entropy Difference",
+        "Combined Score",  # Added this field
         "Likely Direction"
     ]
     
@@ -186,6 +192,7 @@ def save_results_to_csv(results, filename='directionality_results.csv'):
         "Final Entropy",
         "Gini Difference",
         "Entropy Difference",
+        "Combined Score",  # Added this field
         "Likely Direction"
     ]
     
