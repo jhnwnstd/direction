@@ -66,35 +66,18 @@ def analyze_directionality(text):
     
     initial_entropy = calculate_entropy_value(list(initial_freqs.values()))
     final_entropy = calculate_entropy_value(list(final_freqs.values()))
-    
+      
     # Calculate differences
     gini_difference = initial_gini - final_gini
     entropy_difference = initial_entropy - final_entropy
 
-    # Scaling the differences using min-max normalization
-    # For Gini differences, the possible range is [-1, 1]
-    normalized_gini_diff = (gini_difference + 1) / 2  # Scaled to [0, 1]
-    
-    # For entropy differences, the possible range depends on the data
-    # We'll assume a reasonable entropy range [0, max_entropy]
     max_entropy = np.log2(len(set(initial_chars + final_chars)))  # Maximum possible entropy
-    # Handle the case where max_entropy is zero
-    if max_entropy == 0:
-        normalized_entropy_diff = 0
-    else:
-        # Entropy difference can range from -max_entropy to max_entropy
-        normalized_entropy_diff = (entropy_difference + max_entropy) / (2 * max_entropy)  # Scaled to [0, 1]
+    normalized_gini_diff = (gini_difference + 1) / 2  # Scaled to [0, 1]
+    normalized_entropy_diff = (entropy_difference + max_entropy) / (2 * max_entropy) if max_entropy else 0
     
-    # Now both differences are scaled to [0, 1], we can combine them
     combined_score = normalized_entropy_diff - normalized_gini_diff
     
-    # Determine likely direction
-    if combined_score > 0:
-        likely_direction = "Left-to-Right"
-    elif combined_score < 0:
-        likely_direction = "Right-to-Left"
-    else:
-        likely_direction = "Indeterminate"
+    likely_direction = "Left-to-Right" if combined_score > 0 else "Right-to-Left" if combined_score < 0 else "Indeterminate"
     
     return {
         "Initial Gini": round(initial_gini, 4),
@@ -119,31 +102,28 @@ def process_languages(languages, europarl_sample_size=None, udhr_sample_size=Non
         try:
             corpus = getattr(europarl_raw, language)
             text_data = corpus.raw()
-            token_count = len(text_data.split())  # Count tokens in the corpus
+            token_count = len(text_data.split())
 
-            # If sample size is specified, truncate the text
             if europarl_sample_size is not None:
                 text_data = text_data[:europarl_sample_size]
 
             reversed_text_data = text_data[::-1]
 
-            # Analyze normal text
             normal_results = analyze_directionality(text_data)
             normal_results.update({
                 "Language": language.capitalize(),
-                "Sample Size": len(text_data) if europarl_sample_size is None else europarl_sample_size,
+                "Sample Size": len(text_data),
                 "Text Type": "Normal",
-                "Token Count": token_count  # Record token count
+                "Token Count": token_count
             })
             results.append(normal_results)
 
-            # Analyze reversed text
             reversed_results = analyze_directionality(reversed_text_data)
             reversed_results.update({
                 "Language": language.capitalize(),
-                "Sample Size": len(reversed_text_data) if europarl_sample_size is None else europarl_sample_size,
+                "Sample Size": len(reversed_text_data),
                 "Text Type": "Reversed",
-                "Token Count": token_count  # Record token count
+                "Token Count": token_count
             })
             results.append(reversed_results)
 
@@ -156,31 +136,28 @@ def process_languages(languages, europarl_sample_size=None, udhr_sample_size=Non
         print(f"Processing UDHR Language: {udhr_language}")
         try:
             text_data = udhr.raw(fileids=fileid)
-            token_count = len(text_data.split())  # Count tokens in the UDHR text
+            token_count = len(text_data.split())
 
-            # If sample size is specified, truncate the text
             if udhr_sample_size is not None:
                 text_data = text_data[:udhr_sample_size]
 
             reversed_text_data = text_data[::-1]
 
-            # Analyze normal text
             normal_results = analyze_directionality(text_data)
             normal_results.update({
                 "Language": udhr_language,
-                "Sample Size": len(text_data) if udhr_sample_size is None else udhr_sample_size,
+                "Sample Size": len(text_data),
                 "Text Type": "Normal",
-                "Token Count": token_count  # Record token count
+                "Token Count": token_count
             })
             results.append(normal_results)
 
-            # Analyze reversed text
             reversed_results = analyze_directionality(reversed_text_data)
             reversed_results.update({
                 "Language": udhr_language,
-                "Sample Size": len(reversed_text_data) if udhr_sample_size is None else udhr_sample_size,
+                "Sample Size": len(reversed_text_data),
                 "Text Type": "Reversed",
-                "Token Count": token_count  # Record token count
+                "Token Count": token_count
             })
             results.append(reversed_results)
 
@@ -203,14 +180,14 @@ def display_results(results):
     fieldnames = [
         "Language",
         "Sample Size",
-        "Token Count",  # Added this field
+        "Token Count",
         "Text Type",
         "Initial Gini",
         "Final Gini",
         "Initial Entropy",
         "Final Entropy",
-        "Gini Difference",                 # Include this
-        "Entropy Difference",              # Include this
+        "Gini Difference",
+        "Entropy Difference",
         "Normalized Gini Difference",
         "Normalized Entropy Difference",
         "Combined Score",
@@ -235,8 +212,8 @@ def save_results_to_csv(results, filename='directionality_results.csv'):
         "Final Gini",
         "Initial Entropy",
         "Final Entropy",
-        "Gini Difference",                 # Include this
-        "Entropy Difference",              # Include this
+        "Gini Difference",
+        "Entropy Difference",
         "Normalized Gini Difference",
         "Normalized Entropy Difference",
         "Combined Score",
@@ -254,23 +231,19 @@ def save_results_to_csv(results, filename='directionality_results.csv'):
         print(f"Error saving to CSV: {e}")
 
 
-
 def main():
-    """Main function to orchestrate the analysis of writing directionality."""
+    """Main function to orchestrate the analysis."""
     download_nltk_corpora()
-    
-    available_languages = get_available_languages()
-    if not available_languages:
+    languages = get_available_languages()
+    if not languages:
         print("No languages found in 'europarl_raw' corpus.")
         sys.exit(1)
-    
-    print(f"Available languages in 'europarl_raw': {available_languages}\n")
-    
-    all_results = process_languages(available_languages)
-    
+
+    print(f"Available languages: {languages}\n")
+    all_results = process_languages(languages)
+
     display_results(all_results)
-    
-    # Ask if the user wants to save the results to CSV
+
     save_choice = input("\nWould you like to save the results to 'directionality_results.csv'? (y/n): ").strip().lower()
     if save_choice == 'y':
         save_results_to_csv(all_results)
